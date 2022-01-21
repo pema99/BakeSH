@@ -1,0 +1,94 @@
+﻿#include "Common.cginc"
+
+// Kernel inputs
+int shCount;
+int sampleCount;
+TextureCube<float4> cubemap;
+SamplerState linearClamp;
+
+// Cubemap -> L0 sh
+#pragma kernel projectL0
+[numthreads(64, 1, 1)]
+void projectL0(uint3 id : SV_DispatchThreadID, RWStructuredBuffer<SHL0> accumulator)
+{
+    for (uint i = 0; i < uint(sampleCount); i++)
+    {
+        float2 square = float2(uniformSample(i * 2), uniformSample(i * 2 + 1));
+        float3 direction = squareToSphere(square);
+
+        float3 functionValue = cubemap.SampleLevel(linearClamp, direction, 0).rgb;
+
+        float3 l0c = y0() * functionValue;
+
+        accumulator[id.x].l0 += l0c;
+    }
+
+    accumulator[id.x].l0 *= (4.0 * PI) / sampleCount;
+}
+
+// Cubemap -> L1 sh
+#pragma kernel projectL1
+[numthreads(64, 1, 1)]
+void projectL1(uint3 id : SV_DispatchThreadID, RWStructuredBuffer<SHL1> accumulator)
+{
+    for (uint i = 0; i < uint(sampleCount); i++)
+    {
+        float2 square = float2(uniformSample(i * 2), uniformSample(i * 2 + 1));
+        float3 direction = squareToSphere(square);
+
+        float3 functionValue = cubemap.SampleLevel(linearClamp, direction, 0).rgb;
+
+        float3 l0c = y0() * functionValue;
+        float3 l10c = y10(direction) * functionValue;
+        float3 l11c = y11(direction) * functionValue;
+        float3 l12c = y12(direction) * functionValue;
+
+        accumulator[id.x].l1r += float4(l10c.r, l11c.r, l12c.r, l0c.r);
+        accumulator[id.x].l1g += float4(l10c.g, l11c.g, l12c.g, l0c.g);
+        accumulator[id.x].l1b += float4(l10c.b, l11c.b, l12c.b, l0c.b);
+    }
+
+    accumulator[id.x].l1r *= (4.0 * PI) / sampleCount;
+    accumulator[id.x].l1g *= (4.0 * PI) / sampleCount;
+    accumulator[id.x].l1b *= (4.0 * PI) / sampleCount;
+}
+
+// Cubemap -> L2 sh
+#pragma kernel projectL2
+[numthreads(64, 1, 1)]
+void projectL2(uint3 id : SV_DispatchThreadID, RWStructuredBuffer<SHL2> accumulator)
+{
+    for (uint i = 0; i < uint(sampleCount); i++)
+    {
+        float2 square = float2(uniformSample(i * 2), uniformSample(i * 2 + 1));
+        float3 direction = squareToSphere(square);
+
+        float3 functionValue = cubemap.SampleLevel(linearClamp, direction, 0).rgb;
+
+        float3 l0c = y0() * functionValue;
+        float3 l10c = y10(direction) * functionValue;
+        float3 l11c = y11(direction) * functionValue;
+        float3 l12c = y12(direction) * functionValue;
+        float3 l20c = y20(direction) * functionValue;
+        float3 l21c = y21(direction) * functionValue;
+        float3 l22c = y22(direction) * functionValue;
+        float3 l23c = y23(direction) * functionValue;
+        float3 l24c = y24(direction) * functionValue;
+
+        accumulator[id.x].l1r += float4(l10c.r, l11c.r, l12c.r, l0c.r);
+        accumulator[id.x].l1g += float4(l10c.g, l11c.g, l12c.g, l0c.g);
+        accumulator[id.x].l1b += float4(l10c.b, l11c.b, l12c.b, l0c.b);
+        accumulator[id.x].l2r += float4(l20c.r, l21c.r, l22c.r, l23c.r);
+        accumulator[id.x].l2g += float4(l20c.g, l21c.g, l22c.g, l23c.g);
+        accumulator[id.x].l2b += float4(l20c.b, l21c.b, l22c.b, l23c.b);
+        accumulator[id.x].l2c += float4(l24c.r, l24c.g, l24c.b, 0.0);
+    }
+
+    accumulator[id.x].l1r *= (4.0 * PI) / sampleCount;
+    accumulator[id.x].l1g *= (4.0 * PI) / sampleCount;
+    accumulator[id.x].l1b *= (4.0 * PI) / sampleCount;
+    accumulator[id.x].l2r *= (4.0 * PI) / sampleCount;
+    accumulator[id.x].l2g *= (4.0 * PI) / sampleCount;
+    accumulator[id.x].l2b *= (4.0 * PI) / sampleCount;
+    accumulator[id.x].l2c *= (4.0 * PI) / sampleCount;
+}
