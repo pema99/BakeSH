@@ -152,6 +152,9 @@ public class BakeSHEditor : Editor
         
         if (GUILayout.Button("Bake SH"))
         {
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+
             switch (shBand)
             {
                 case 0: tar.BakeSHL0(); break;
@@ -159,6 +162,9 @@ public class BakeSHEditor : Editor
                 case 2: tar.BakeSHL2(); break;
             }
             tar.viz.SetInt("_SHBand", shBand);
+
+            sw.Stop();
+            Debug.Log($"Bake took {sw.ElapsedMilliseconds} ms");
         }
     }
 }
