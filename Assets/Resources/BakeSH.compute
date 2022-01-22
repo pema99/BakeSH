@@ -1,0 +1,62 @@
+﻿#include "Common.cginc"
+#include "SHTools.cginc"
+#include "Sampling.cginc"
+#include "Intersection.cginc"
+
+// Kernel inputs
+int sampleCount;
+float4x4 localToWorld;
+int batchId;
+bool hemisphericalSampling;
+float maxDistance;
+float strength;
+
+// Scene occlusion -> SH2
+#pragma kernel projectOcclusionL1
+[numthreads(8, 8, 1)]
+void projectOcclusionL1(uint3 id : SV_DispatchThreadID, Texture2D<float4> origins, Texture2D<float4> normals, RWTexture2D<float4> target)
+{
+    float3 rayOrigin = mul(localToWorld, float4(origins[id.xy].xyz, 1)).xyz;
+    float3 normal = mul(localToWorld, float4(normals[id.xy].xyz, 0)).xyz;
+
+    for (uint i = 0; i < uint(sampleCount); i++)
+    {
+        uint batchOffset = batchId * sampleCount * 2;
+        float2 square = float2(uniformSample(batchOffset + i * 2), uniformSample(batchOffset + i * 2 + 1));
+        float3 direction;
+        if (hemisphericalSampling)
+        {
+            direction = squareToHemisphere(normal, square);
+        }
+        else
+        {
+            direction = squareToSphere(square);
+        }
+
+        float functionValue = 0;
+
+        float minT;
+        trace(rayOrigin, direction, minT);
+        if (minT < maxDistance)
+            functionValue = strength;
+
+        float l0c = y0() * functionValue;
+        float l10c = y10(direction) * functionValue;
+        float l11c = y11(direction) * functionValue;
+        float l12c = y12(direction) * functionValue;
+        float l20c = y20(direction) * functionValue;
+        float l21c = y21(direction) * functionValue;
+        float l22c = y22(direction) * functionValue;
+        float l23c = y23(direction) * functionValue;
+        float l24c = y24(direction) * functionValue;
+
+        target[id.xy] += float4(l10c, l11c, l12c, l0c);
+    }
+}
+
+#pragma kernel divideSamples
+[numthreads(8, 8, 1)]
+void divideSamples(uint3 id : SV_DispatchThreadID, RWTexture2D<float4> target)
+{
+    target[id.xy] *= (4.0 * PI) / sampleCount;
+}

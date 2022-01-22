@@ -1,8 +1,4 @@
-﻿// --- General constants ---
-#define PI         3.14159265359f
-#define TWO_PI     (2.0 * PI)
-
-// --- SH stuff ---
+﻿// --- SH stuff ---
 // 1/2 * sqrt(1/π)
 #define L0_NORMALIZATION 0.2820947917738781434740397257803862929220253146644994284220428608
 
@@ -85,31 +81,3 @@ struct SHL2
     float4 l2b; // l20b, l21b, l22b, l23b
     float4 l2c; // l24r, l24g, l24b
 };
-
-// --- Sampling ---
-// https://www.reedbeta.com/blog/hash-functions-for-gpu-rendering/
-uint pcgHash(uint input)
-{
-    uint state = input * 747796405u + 2891336453u;
-    uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
-    return (word >> 22u) ^ word;
-}
-
-float uniformSample(uint seed)
-{
-    uint hash = pcgHash(seed);
-    return (float)hash / 4294967295.0;
-}
-
-// uniform square sample -> uniform sphere sample
-float3 squareToSphere(float2 inputCoords)
-{
-    float theta = TWO_PI * inputCoords.x;
-    float sinTheta, cosTheta;
-    sincos(theta, sinTheta, cosTheta);
-
-    float cosPhi = 1.0 - 2.0 * inputCoords.y;
-    float sinPhi = sqrt(max(0.0, 1.0 - cosPhi * cosPhi));
-
-    return float3(sinPhi * cosTheta, sinPhi * sinTheta, cosPhi);
-}
