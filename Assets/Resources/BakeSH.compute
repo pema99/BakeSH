@@ -16,6 +16,8 @@ float strength;
 [numthreads(8, 8, 1)]
 void projectOcclusionL1(uint3 id : SV_DispatchThreadID, Texture2D<float4> origins, Texture2D<float4> normals, RWTexture2D<float4> target)
 {
+    if (!any(origins[id.xy].xyz)) return;
+
     float3 rayOrigin = mul(localToWorld, float4(origins[id.xy].xyz, 1)).xyz;
     float3 normal = mul(localToWorld, float4(normals[id.xy].xyz, 0)).xyz;
 
