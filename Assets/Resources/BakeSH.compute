@@ -20,7 +20,7 @@ void projectOcclusionL1(uint3 id : SV_DispatchThreadID, Texture2D<float4> origin
     if (!any(origins[id.xy].xyz)) return;
 
     float3 rayOrigin = mul(localToWorld, float4(origins[id.xy].xyz, 1)).xyz;
-    float3 normal = mul(localToWorld, float4(normals[id.xy].xyz, 0)).xyz;
+    float3 normal = normalize(mul(localToWorld, float4(normals[id.xy].xyz, 0)).xyz);
 
     for (uint i = 0; i < uint(sampleCount); i++)
     {
