@@ -13,7 +13,7 @@ namespace PSH
         [Range(1, 8192)] public int samplesPerPixel = 512;
         [Range(0, 1)] public float rayPushOff = 0.02f;
         [Range(0, 10)] public float rayMaxDistance = 1f;
-        [Range(0, 1)] public float occlusionStrength = 0.5f;
+        [Range(0, 2)] public float occlusionStrength = 1f;
         [Range(0.1f, 5f)] public float gridDensity = 3.0f;
         public enum SampleType { Sphere, Hemisphere, CosineWeightedHemisphere }
         public SampleType sampleType = SampleType.Hemisphere;

@@ -90,5 +90,6 @@ void normalizeAndDilate(uint3 id : SV_DispatchThreadID, Texture2D<float4> input,
     }
 
     GroupMemoryBarrierWithGroupSync();
-    target[id.xy] *= (4.0 * PI) / sampleCount;
+    float area = sampleType == 0 ? (4.0 * PI) : (2.0 * PI);
+    target[id.xy] *= area / sampleCount;
 }
