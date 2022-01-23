@@ -82,5 +82,35 @@ namespace PSH
 
             return false;
         }
+
+        public static int Idx3DTo1D(int xMax, int yMax, int x, int y, int z)
+        {
+            return (z * xMax * yMax) + (y * xMax) + x;
+        }
+
+        public static Vector3Int Idx1DTo3D(int xMax, int yMax, int idx)
+        {
+            int z = idx / (xMax * yMax);
+            idx -= (z * xMax * yMax);
+            int y = idx / xMax;
+            int x = idx % xMax;
+            return new Vector3Int(x, y, z);
+        }
+
+        public static Vector3 FloorVec(Vector3 vec)
+        {
+            return new Vector3(
+                Mathf.Floor(vec.x),
+                Mathf.Floor(vec.y),
+                Mathf.Floor(vec.z));
+        }
+
+        public static Vector3 CeilVec(Vector3 vec)
+        {
+            return new Vector3(
+                Mathf.Ceil(vec.x),
+                Mathf.Ceil(vec.y),
+                Mathf.Ceil(vec.z));
+        }
     }
 }

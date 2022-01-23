@@ -30,3 +30,8 @@ float4x4 inverse(float4x4 input)
     #undef minor
     return transpose(cofactors) / determinant(input);
 }
+
+uint idx3DTo1D(uint xMax, uint yMax, uint x, uint y, uint z)
+{
+    return (z * xMax * yMax) + (y * xMax) + x;
+}

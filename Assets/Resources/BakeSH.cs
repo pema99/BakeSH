@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -13,11 +14,14 @@ namespace PSH
         [Range(0, 1)] public float rayPushOff = 0.02f;
         [Range(0, 10)] public float rayMaxDistance = 1f;
         [Range(0, 1)] public float occlusionStrength = 0.5f;
+        [Range(0.1f, 5f)] public float gridDensity = 3.0f;
         public enum SampleType { Sphere, Hemisphere, CosineWeightedHemisphere }
         public SampleType sampleType = SampleType.Hemisphere;
         public bool stitchSeams = true;
+        public bool drawGrid = false;
 
         private ComputeShader shader;
+        private AccelerationStructure grid;
 
         private int kernelProjectOcclusionL1;
         private int kernelNormalizeAndDilate;
@@ -31,6 +35,14 @@ namespace PSH
 
             kernelProjectOcclusionL1 = shader.FindKernel("projectOcclusionL1");
             kernelNormalizeAndDilate = shader.FindKernel("normalizeAndDilate");
+        }
+
+        public void OnDrawGizmos()
+        {
+            if (drawGrid)
+            {
+                grid?.Draw();
+            }
         }
 
         public void BakeOcclusionSHL2(GameObject go)
@@ -67,6 +79,11 @@ namespace PSH
             // Extract scene
             ExtractScene.GetAllSceneGeometry(out Vector3[] verts, out Vector3Int[] indices);
 
+            // Build accel struct
+            grid = new AccelerationStructure();
+            grid.Build(gridDensity, verts, indices);
+            ComputeBuffer gridBuffer = grid.Bind(shader, kernelProjectOcclusionL1);
+
             ComputeBuffer vertsBuf = new ComputeBuffer(verts.Length, sizeof(float) * 3);
             vertsBuf.SetData(verts);
             shader.SetBuffer(kernelProjectOcclusionL1, "verts", vertsBuf);
@@ -82,6 +99,7 @@ namespace PSH
             {
                 if (EditorUtility.DisplayCancelableProgressBar("Baking", $"Group {i}/{invocations}", i / (float)invocations))
                 {
+                    gridBuffer.Release();
                     vertsBuf.Release();
                     indicesBuf.Release();
                     vertPosRt.Release();
@@ -111,6 +129,7 @@ namespace PSH
             Utils.SaveTexture(scratchRt2);
 
             // Cleanup
+            gridBuffer.Release();
             vertsBuf.Release();
             indicesBuf.Release();
             vertPosRt.Release();
