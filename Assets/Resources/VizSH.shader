@@ -60,7 +60,11 @@
 
                 float3 res = col;
                 if (_Toggle) res *= (1 - sampleSHTex(i.uv, i.normal));
+                #if UNITY_COLORSPACE_GAMMA
+                return float4(LinearToGammaSpace(res), 1);
+                #else
                 return float4(res, 1);
+                #endif
             }
             ENDCG
         }
