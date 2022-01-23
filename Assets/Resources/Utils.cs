@@ -62,5 +62,13 @@ namespace PSH
             rt.Create();
             return rt;
         }
+
+        public static bool TryGetMesh(this GameObject go, out Mesh mesh)
+        {
+            go.TryGetComponent<MeshFilter>(out var meshFilter);
+            go.TryGetComponent<SkinnedMeshRenderer>(out var skinnedMesh);
+            mesh = meshFilter?.sharedMesh ?? skinnedMesh?.sharedMesh;
+            return mesh != null;
+        }
     }
 }

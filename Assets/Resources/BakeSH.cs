@@ -34,8 +34,7 @@ namespace PSH
 
         public void BakeOcclusionSHL2(GameObject go)
         {
-            if (!go.TryGetComponent<MeshFilter>(out var meshFilter)) return;
-            var mesh = meshFilter.sharedMesh;
+            if (!go.TryGetMesh(out Mesh mesh)) return;
 
             // Calc batch sizes
             int totalWork = textureSize * textureSize * samplesPerPixel;

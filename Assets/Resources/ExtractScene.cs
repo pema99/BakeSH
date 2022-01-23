@@ -23,10 +23,9 @@ namespace PSH
                 if (!(!EditorUtility.IsPersistent(go.transform.root.gameObject) && !(go.hideFlags == HideFlags.NotEditable || go.hideFlags == HideFlags.HideAndDontSave) && go.activeInHierarchy))
                     continue;
 
-                if (!go.TryGetComponent<MeshFilter>(out var meshFilter))
+                if (!go.TryGetMesh(out Mesh mesh))
                     continue;
 
-                Mesh mesh = meshFilter.sharedMesh;
                 Vector3[] meshVerts = mesh.vertices;
                 int[] meshIndices = mesh.triangles;
 
