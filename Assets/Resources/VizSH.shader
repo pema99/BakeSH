@@ -51,16 +51,21 @@
             float sampleSHTex(float2 uv, float3 n)
             {
                 float4 sh = tex2D(_L1Tex, uv);
-                return sh.r * y10(n) + sh.g * y11(n) + sh.b * y12(n) + sh.a * y0();
+                float eval = sh.r * y10(n) + sh.g * y11(n) + sh.b * y12(n) + sh.a * y0();
+                return eval;
             }
 
             float4 frag(v2f i) : SV_Target
             {
                 float3 col = tex2D(_MainTex, TRANSFORM_TEX(i.uv, _MainTex));
-
-                float3 res = col;
-                if (_Toggle) res *= (1 - sampleSHTex(i.uv, i.normal));
-                return float4(res, 1);
+                #ifdef UNITY_COLORSPACE_GAMMA
+                col = GammaToLinearSpace(col);
+                if (_Toggle) col *= (1 - sampleSHTex(i.uv, i.normal));
+                return float4(LinearToGammaSpace(col), 1);
+                #else
+                if (_Toggle) col *= (1 - sampleSHTex(i.uv, i.normal));
+                return float4(col, 1);
+                #endif
             }
             ENDCG
         }
