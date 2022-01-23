@@ -1,0 +1,92 @@
+﻿#include "Common.cginc"
+#include "SHTools.cginc"
+#include "Sampling.cginc"
+#include "Intersection.cginc"
+
+// Kernel inputs
+int sampleCount;
+float4x4 localToWorld;
+int batchId;
+int sampleType;
+float maxDistance;
+float strength;
+bool dilate;
+
+// Scene occlusion -> SH2
+#pragma kernel projectOcclusionL1
+[numthreads(8, 8, 1)]
+void projectOcclusionL1(uint3 id : SV_DispatchThreadID, Texture2D<float4> origins, Texture2D<float4> normals, RWTexture2D<float4> target)
+{
+    if (!any(origins[id.xy].xyz)) return;
+
+    float3 rayOrigin = mul(localToWorld, float4(origins[id.xy].xyz, 1)).xyz;
+    float3 normal = mul(localToWorld, float4(normals[id.xy].xyz, 0)).xyz;
+
+    for (uint i = 0; i < uint(sampleCount); i++)
+    {
+        uint batchOffset = batchId * sampleCount * 2;
+        float2 square = float2(uniformSample(batchOffset + i * 2), uniformSample(batchOffset + i * 2 + 1));
+        float3 direction;
+        [forcecase] switch (sampleType)
+        {
+            case 1: direction = squareToHemisphere(normal, square); break;
+            case 2: direction = squareToCosineHemisphere(normal, square); break;
+            default: direction = squareToSphere(square); break;
+        }
+
+        float functionValue = 0;
+
+        float minT;
+        trace(rayOrigin, direction, minT);
+        if (minT < maxDistance)
+            functionValue = strength;
+
+        float l0c = y0() * functionValue;
+        float l10c = y10(direction) * functionValue;
+        float l11c = y11(direction) * functionValue;
+        float l12c = y12(direction) * functionValue;
+        float l20c = y20(direction) * functionValue;
+        float l21c = y21(direction) * functionValue;
+        float l22c = y22(direction) * functionValue;
+        float l23c = y23(direction) * functionValue;
+        float l24c = y24(direction) * functionValue;
+
+        target[id.xy] += float4(l10c, l11c, l12c, l0c);
+    }
+}
+
+#pragma kernel normalizeAndDilate
+[numthreads(8, 8, 1)]
+void normalizeAndDilate(uint3 id : SV_DispatchThreadID, Texture2D<float4> input, RWTexture2D<float4> target)
+{
+    target[id.xy] = input[id.xy];
+    GroupMemoryBarrierWithGroupSync();
+
+    if (dilate && !any(input[id.xy].x))
+    {
+        uint w, h;
+        target.GetDimensions(w, h);
+
+        float minLength = 1000000;
+        int2 minOffset = 0;
+        for (int i = 0; i < 5; i++)
+        {
+            for (int j = 0; j < 5; j++)
+            {
+                int2 offset = int2(i - 2, j - 2);
+                if (any(input[id.xy + offset]) && all((id.xy + offset) >= 0) && all((id.xy + offset) < w))
+                {
+                    if (length(offset) < minLength)
+                    {
+                        minLength = length(offset);
+                        minOffset = offset;
+                    }
+                }
+            }
+        }
+        target[id.xy] = input[id.xy + minOffset];
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+    target[id.xy] *= (4.0 * PI) / sampleCount;
+}

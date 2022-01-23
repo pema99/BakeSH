@@ -64,7 +64,8 @@ LightmapSettings:
     m_CompAOExponentDirect: 0
     m_ExtractAmbientOcclusion: 0
     m_Padding: 2
-    m_LightmapParameters: {fileID: 0}
+    m_LightmapParameters: {fileID: 111300000, guid: 0639a96382cc66e43969fbd7c58e0ebd,
+      type: 2}
     m_LightmapsBakeMode: 1
     m_TextureCompression: 1
     m_FinalGather: 0
@@ -153,9 +154,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bca9b58d058a33f4f894da0d28e34101, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cubemap: {fileID: 8900000, guid: c20a7157c2a3dca40b5ee7619561d69a, type: 3}
-  shader: {fileID: 7200000, guid: 34c7f642062ceed4497d3da2c490e598, type: 3}
-  viz: {fileID: 2100000, guid: 6f55556b32db4f244b211f7ff072a940, type: 2}
+  textureSize: 512
+  samplesPerPixel: 512
+  rayPushOff: 0.02
+  rayMaxDistance: 1
+  occlusionStrength: 0.5
+  gridDensity: 3
+  sampleType: 1
+  stitchSeams: 1
+  drawGrid: 0
 --- !u!23 &298767797
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -202,7 +209,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 298767795}
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 3339987848490680739, guid: bc18deed9187f9e43bb7b132a11b8723, type: 3}
 --- !u!4 &298767799
 Transform:
   m_ObjectHideFlags: 0
@@ -211,7 +218,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 298767795}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -4.042, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
