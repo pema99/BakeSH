@@ -52,5 +52,15 @@ namespace PSH
             RenderTexture.active = null;
             return tex;
         }
+
+        public static RenderTexture GetWritableTempRT(int textureSize)
+        {
+            var rtDesc = new RenderTextureDescriptor(textureSize, textureSize, RenderTextureFormat.ARGBFloat, 0);
+            RenderTexture rt = new RenderTexture(rtDesc);
+            rt.enableRandomWrite = true;
+            rt.useMipMap = false;
+            rt.Create();
+            return rt;
+        }
     }
 }

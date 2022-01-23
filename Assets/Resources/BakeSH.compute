@@ -10,6 +10,7 @@ int batchId;
 bool hemisphericalSampling;
 float maxDistance;
 float strength;
+bool dilate;
 
 // Scene occlusion -> SH2
 #pragma kernel projectOcclusionL1
@@ -56,9 +57,38 @@ void projectOcclusionL1(uint3 id : SV_DispatchThreadID, Texture2D<float4> origin
     }
 }
 
-#pragma kernel divideSamples
+#pragma kernel normalizeAndDilate
 [numthreads(8, 8, 1)]
-void divideSamples(uint3 id : SV_DispatchThreadID, RWTexture2D<float4> target)
+void normalizeAndDilate(uint3 id : SV_DispatchThreadID, Texture2D<float4> input, RWTexture2D<float4> target)
 {
+    target[id.xy] = input[id.xy];
+    GroupMemoryBarrierWithGroupSync();
+
+    if (dilate && !any(input[id.xy].x))
+    {
+        uint w, h;
+        target.GetDimensions(w, h);
+
+        float minLength = 1000000;
+        int2 minOffset = 0;
+        for (int i = 0; i < 5; i++)
+        {
+            for (int j = 0; j < 5; j++)
+            {
+                int2 offset = int2(i - 2, j - 2);
+                if (any(input[id.xy + offset]) && all((id.xy + offset) >= 0) && all((id.xy + offset) < w))
+                {
+                    if (length(offset) < minLength)
+                    {
+                        minLength = length(offset);
+                        minOffset = offset;
+                    }
+                }
+            }
+        }
+        target[id.xy] = input[id.xy + minOffset];
+    }
+
+    GroupMemoryBarrierWithGroupSync();
     target[id.xy] *= (4.0 * PI) / sampleCount;
 }
