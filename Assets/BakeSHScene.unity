@@ -159,7 +159,7 @@ MonoBehaviour:
   rayPushOff: 0.03
   rayMaxDistance: 1
   occlusionStrength: 0.5
-  hemisphericalSampling: 1
+  sampleType: 2
   stitchSeams: 1
 --- !u!23 &298767797
 MeshRenderer:

@@ -7,7 +7,7 @@
 int sampleCount;
 float4x4 localToWorld;
 int batchId;
-bool hemisphericalSampling;
+int sampleType;
 float maxDistance;
 float strength;
 bool dilate;
@@ -27,13 +27,11 @@ void projectOcclusionL1(uint3 id : SV_DispatchThreadID, Texture2D<float4> origin
         uint batchOffset = batchId * sampleCount * 2;
         float2 square = float2(uniformSample(batchOffset + i * 2), uniformSample(batchOffset + i * 2 + 1));
         float3 direction;
-        if (hemisphericalSampling)
+        [forcecase] switch (sampleType)
         {
-            direction = squareToHemisphere(normal, square);
-        }
-        else
-        {
-            direction = squareToSphere(square);
+            case 1: direction = squareToHemisphere(normal, square); break;
+            case 2: direction = squareToCosineHemisphere(normal, square); break;
+            default: direction = squareToSphere(square); break;
         }
 
         float functionValue = 0;

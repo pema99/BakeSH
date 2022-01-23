@@ -34,3 +34,24 @@ float3 squareToHemisphere(float3 normal, float2 inputCoords)
         dir = -dir;
     return dir;
 }
+
+// uniform square sample -> cosine weighted hemisphere sample
+float3 squareToCosineHemisphere(float3 normal, float2 inputCoords)
+{
+    // Get tangent space transformation
+    float3 nt, nb;
+    if (abs(normal.x) > abs(normal.y))
+        nt = normalize(float3(normal.z, 0, -normal.x));
+    else
+        nt = normalize(float3(0, -normal.z, normal.y));
+    nb = cross(normal, nt);
+    float3x3 tbn = transpose(float3x3(nb, normal, nt));
+
+    // Get cosine sample pointing up
+    float theta = acos(sqrt(inputCoords.x));
+    float phi = 2.0 * PI * inputCoords.y;
+    float3 dir = float3(sin(theta) * cos(phi), cos(theta), sin(theta) * sin(phi));
+
+    // Move into tangent space
+    return normalize(mul(tbn, dir));
+}

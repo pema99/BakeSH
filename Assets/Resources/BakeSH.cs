@@ -13,7 +13,8 @@ namespace PSH
         [Range(0, 1)] public float rayPushOff = 0.02f;
         [Range(0, 10)] public float rayMaxDistance = 1f;
         [Range(0, 1)] public float occlusionStrength = 0.5f;
-        public bool hemisphericalSampling = true;
+        public enum SampleType { Sphere, Hemisphere, CosineWeightedHemisphere }
+        public SampleType sampleType = SampleType.Hemisphere;
         public bool stitchSeams = true;
 
         private ComputeShader shader;
@@ -53,7 +54,7 @@ namespace PSH
 
             // Setup kernel properties
             shader.SetInt("sampleCount", sampleCount);
-            shader.SetBool("hemisphericalSampling", hemisphericalSampling);
+            shader.SetInt("sampleType", (int)sampleType);
             shader.SetFloat("pushOff", rayPushOff);
             shader.SetFloat("maxDistance", rayMaxDistance);
             shader.SetFloat("strength", occlusionStrength);
