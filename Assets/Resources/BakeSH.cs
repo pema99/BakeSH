@@ -159,6 +159,7 @@ namespace PSH
 
                 sw.Stop();
                 Debug.Log($"Bake took {sw.ElapsedMilliseconds} ms.");
+                GUIUtility.ExitGUI();
             }
         }
     }
