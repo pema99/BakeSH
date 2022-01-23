@@ -65,10 +65,22 @@ namespace PSH
 
         public static bool TryGetMesh(this GameObject go, out Mesh mesh)
         {
-            go.TryGetComponent<MeshFilter>(out var meshFilter);
-            go.TryGetComponent<SkinnedMeshRenderer>(out var skinnedMesh);
-            mesh = meshFilter?.sharedMesh ?? skinnedMesh?.sharedMesh;
-            return mesh != null;
+            mesh = null;
+
+            if (go.TryGetComponent<MeshFilter>(out var meshFilter))
+            {
+                mesh = meshFilter.sharedMesh;
+                return true;
+            }
+
+            if (go.TryGetComponent<SkinnedMeshRenderer>(out var skinnedMesh))
+            {
+                mesh = new Mesh();
+                skinnedMesh.BakeMesh(mesh);
+                return true;
+            }
+
+            return false;
         }
     }
 }
