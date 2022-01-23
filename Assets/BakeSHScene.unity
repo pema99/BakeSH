@@ -156,11 +156,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   textureSize: 512
   samplesPerPixel: 512
-  rayPushOff: 0.03
+  rayPushOff: 0.02
   rayMaxDistance: 1
   occlusionStrength: 0.5
-  sampleType: 2
+  gridDensity: 3
+  sampleType: 1
   stitchSeams: 1
+  drawGrid: 0
 --- !u!23 &298767797
 MeshRenderer:
   m_ObjectHideFlags: 0
