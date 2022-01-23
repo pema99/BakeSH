@@ -1,5 +1,5 @@
 # BakeSH
-Tool to bake directional occlusion to SH in compute shader using Unity and visualize it. This bakes an HDR texture containing L1 spherical harmonics coefficients in each pixel, which can be used to shade a mesh with directional occlusion (check VizSH.shader for an example).
+Tool to bake directional occlusion to SH in compute shader using Unity and visualize it. This bakes an HDR texture containing L1 spherical harmonics coefficients in each pixel, which can be used to shade a mesh with directional occlusion (check VizSH.shader for an example). There is also an example scene (BakeSHScene.unity) with a pre-baked mesh.
 
 # Example
 Comparison with and without baked directional occlusion:
