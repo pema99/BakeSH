@@ -19,6 +19,7 @@ void projectOcclusionL1(uint3 id : SV_DispatchThreadID, Texture2D<float4> origin
 {
     if (!any(origins[id.xy].xyz)) return;
 
+    float4x4 worldToLocal = inverse(localToWorld);
     float3 rayOrigin = mul(localToWorld, float4(origins[id.xy].xyz, 1)).xyz;
     float3 normal = normalize(mul(localToWorld, float4(normals[id.xy].xyz, 0)).xyz);
 
@@ -41,15 +42,16 @@ void projectOcclusionL1(uint3 id : SV_DispatchThreadID, Texture2D<float4> origin
         if (minT < maxDistance)
             functionValue = strength;
 
+        float3 localDirection = mul(worldToLocal, float4(direction, 0));
         float l0c = y0() * functionValue;
-        float l10c = y10(direction) * functionValue;
-        float l11c = y11(direction) * functionValue;
-        float l12c = y12(direction) * functionValue;
-        float l20c = y20(direction) * functionValue;
-        float l21c = y21(direction) * functionValue;
-        float l22c = y22(direction) * functionValue;
-        float l23c = y23(direction) * functionValue;
-        float l24c = y24(direction) * functionValue;
+        float l10c = y10(localDirection) * functionValue;
+        float l11c = y11(localDirection) * functionValue;
+        float l12c = y12(localDirection) * functionValue;
+        float l20c = y20(localDirection) * functionValue;
+        float l21c = y21(localDirection) * functionValue;
+        float l22c = y22(localDirection) * functionValue;
+        float l23c = y23(localDirection) * functionValue;
+        float l24c = y24(localDirection) * functionValue;
 
         target[id.xy] += float4(l10c, l11c, l12c, l0c);
     }
