@@ -15,7 +15,7 @@ bool dilate;
 // Scene occlusion -> SH2
 #pragma kernel projectOcclusionL1
 [numthreads(8, 8, 1)]
-void projectOcclusionL1(uint3 id : SV_DispatchThreadID, Texture2D<float4> origins, Texture2D<float4> normals, RWTexture2D<float4> target)
+void projectOcclusionL1(uint3 id : SV_DispatchThreadID, Texture2D<float4> origins, Texture2D<float4> normals, RWTexture2D<float4> target, RWTexture2D<float4> avgDir)
 {
     if (!any(origins[id.xy].xyz)) return;
 
@@ -40,9 +40,15 @@ void projectOcclusionL1(uint3 id : SV_DispatchThreadID, Texture2D<float4> origin
         float minT;
         trace(rayOrigin, direction, minT);
         if (minT < maxDistance)
+        {
             functionValue = strength;
+        }
+        else
+        {
+            avgDir[id.xy] += float4(direction, 1);
+        }
 
-        float3 localDirection = mul(worldToLocal, float4(direction, 0));
+        float3 localDirection = mul(worldToLocal, float4(direction, 0)).xyz;
         float l0c = y0() * functionValue;
         float l10c = y10(localDirection) * functionValue;
         float l11c = y11(localDirection) * functionValue;
@@ -59,12 +65,13 @@ void projectOcclusionL1(uint3 id : SV_DispatchThreadID, Texture2D<float4> origin
 
 #pragma kernel normalizeAndDilate
 [numthreads(8, 8, 1)]
-void normalizeAndDilate(uint3 id : SV_DispatchThreadID, Texture2D<float4> input, RWTexture2D<float4> target)
+void normalizeAndDilate(uint3 id : SV_DispatchThreadID, Texture2D<float4> input, RWTexture2D<float4> target, RWTexture2D<float4> avgDir)
 {
-    target[id.xy] = input[id.xy];
+    avgDir[id.xy] /= sampleCount;
+    target[id.xy] = avgDir[id.xy];
     GroupMemoryBarrierWithGroupSync();
 
-    if (dilate && !any(input[id.xy].x))
+    if (dilate && !any(avgDir[id.xy].x))
     {
         uint w, h;
         target.GetDimensions(w, h);
@@ -76,7 +83,7 @@ void normalizeAndDilate(uint3 id : SV_DispatchThreadID, Texture2D<float4> input,
             for (int j = 0; j < 5; j++)
             {
                 int2 offset = int2(i - 2, j - 2);
-                if (any(input[id.xy + offset]) && all((id.xy + offset) >= 0) && all((id.xy + offset) < w))
+                if (any(avgDir[id.xy + offset]) && all((id.xy + offset) >= 0) && all((id.xy + offset) < w))
                 {
                     if (length(offset) < minLength)
                     {
@@ -86,10 +93,10 @@ void normalizeAndDilate(uint3 id : SV_DispatchThreadID, Texture2D<float4> input,
                 }
             }
         }
-        target[id.xy] = input[id.xy + minOffset];
+        target[id.xy] = avgDir[id.xy + minOffset];
     }
 
     GroupMemoryBarrierWithGroupSync();
-    float area = sampleType == 0 ? (4.0 * PI) : (2.0 * PI);
-    target[id.xy] *= area / sampleCount;
+    //float area = sampleType == 0 ? (4.0 * PI) : (2.0 * PI);
+    //target[id.xy] *= area / sampleCount;
 }

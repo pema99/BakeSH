@@ -72,6 +72,9 @@ namespace PSH
             shader.SetFloat("strength", occlusionStrength);
             shader.SetMatrix("localToWorld", go.transform.localToWorldMatrix);
 
+            var avgDir = Utils.GetWritableTempRT(textureSize);
+            shader.SetTexture(kernelProjectOcclusionL1, "avgDir", avgDir);
+
             shader.SetTexture(kernelProjectOcclusionL1, "origins", vertPosRt);
             shader.SetTexture(kernelProjectOcclusionL1, "normals", normalsRt);
             shader.SetTexture(kernelProjectOcclusionL1, "target", scratchRt1);
@@ -123,10 +126,12 @@ namespace PSH
             shader.SetBool("dilate", stitchSeams);
             shader.SetTexture(kernelNormalizeAndDilate, "input", scratchRt1);
             shader.SetTexture(kernelNormalizeAndDilate, "target", scratchRt2);
+            shader.SetTexture(kernelNormalizeAndDilate, "avgDir", avgDir);
             shader.Dispatch(kernelNormalizeAndDilate, Mathf.CeilToInt(scratchRt1.width / (float)threadGroupSize), Mathf.CeilToInt(scratchRt1.height / (float)threadGroupSize), 1);
 
             EditorUtility.ClearProgressBar();
             Utils.SaveTexture(scratchRt2);
+            //Utils.SaveTexture(avgDir);
 
             // Cleanup
             gridBuffer.Release();

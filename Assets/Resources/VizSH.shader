@@ -4,7 +4,9 @@
     {
         _MainTex ("Main Texture", 2D) = "white"{}
         _L1Tex ("L1Tex", 2D) = "white"{}
-        [ToggleUI] _Toggle ("Toggle", Int) = 0
+        [ToggleUI] _Toggle("Toggle", Int) = 0
+        _Rot("Rot", Vector) = (0, 0, 0)
+        _Cube ("Cube", CUBE) = "white"{}
     }
     SubShader
     {
@@ -47,16 +49,32 @@
             sampler2D _MainTex;
             sampler2D _L1Tex;
             int _Toggle;
+            float3 _Rot;
+            samplerCUBE _Cube;
+
+            float2x2 rot(float theta)
+            {
+                float s, c;
+                sincos(theta, s, c);
+                return float2x2(c, -s, s, c);
+            }
 
             float sampleSHTex(float2 uv, float3 n)
             {
+                float3 up = float3(0, 1, 0);
+                up.yz = mul(rot(_Rot.x), up.yz);
+                up.xz = mul(rot(_Rot.y), up.xz);
+                up.xy = mul(rot(_Rot.z), up.xy);
                 float4 sh = tex2D(_L1Tex, uv);
-                float eval = sh.r * y10(n) + sh.g * y11(n) + sh.b * y12(n) + sh.a * y0();
-                return eval;
+                return dot(sh.xyz, up);
+                //float eval = sh.r * y10(n) + sh.g * y11(n) + sh.b * y12(n) + sh.a * y0();
+               // return eval;
             }
 
             float4 frag(v2f i) : SV_Target
             {
+                if (_Toggle) return texCUBElod(_Cube, float4(i.normal, 4));
+                else return texCUBElod(_Cube, float4(tex2D(_L1Tex, i.uv).xyz, 4));
                 float3 col = tex2D(_MainTex, TRANSFORM_TEX(i.uv, _MainTex));
                 #ifdef UNITY_COLORSPACE_GAMMA
                 col = GammaToLinearSpace(col);
