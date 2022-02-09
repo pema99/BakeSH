@@ -1,4 +1,4 @@
-﻿using System;
+﻿#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -114,3 +114,4 @@ namespace PSH
         }
     }
 }
+#endif
