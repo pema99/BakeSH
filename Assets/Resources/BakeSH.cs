@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace PSH
 {
@@ -164,3 +162,4 @@ namespace PSH
         }
     }
 }
+#endif
